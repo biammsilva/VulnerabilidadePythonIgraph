@@ -22,11 +22,10 @@ def calculosEficiencia(matriz, g):
     while i<len(matriz):
         j=0
         while j<len(matriz[i]):
-            if matriz[i][j]!=0 and i<j:
+            if matriz[i][j]!=0 and i<=j:
                 x+=1.0/matriz[i][j]
             j+=1
         i+=1
-    
     return x/(g.vcount()*(g.vcount()-1))
 
 def eficienciaVertice(g, n):
@@ -57,11 +56,28 @@ def vulnerabilidade(ef, efg):
     return (efg-ef)/efg
     
 
+####### ler grafo do arquivo ########
+
+def strtoint(x):
+    lista = []
+    for i in x:
+        lista.append((int(i[0]), int(i[1])))
+    return lista
+
+
+arquivo = open('karate.txt','r')
+
+valores = []
+
+for linha in arquivo:
+    x=linha.replace('\n', '').split(' ')
+    valores.append((x[0], x[1]))
+
 #####################################
 
 g = Graph()
-g.add_vertices(4)
-g.add_edges([(0,1),(1,2), (0,2), (2, 3),(3, 4)])
+g.add_vertices(len(valores)-1)
+g.add_edges(strtoint(valores))
 
 
 print(summary(g))
