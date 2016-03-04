@@ -1,5 +1,8 @@
 from igraph import *
 
+#this function generate a Matriz with the shortest paths between the nodes
+#the matrix that will be made help us to know a lot of indices, for example
+#vulnerability, global efficiency, straightness centrality
 def matrizMenorCaminho(g):
     i=0
     matriz=[]
@@ -13,9 +16,12 @@ def matrizMenorCaminho(g):
         i+=1
     return matriz
 
+
+
 def eficienciaGlobal(g):
     return calculosEficiencia(matrizMenorCaminho(g), g)
 
+#this function make some calculations to get a matrix and define the efficiency 
 def calculosEficiencia(matriz, g):
     i=0
     x=0.0
@@ -28,6 +34,9 @@ def calculosEficiencia(matriz, g):
         i+=1
     return x/(g.vcount()*(g.vcount()-1))
 
+#this function generate another Graph equals the basic one to delete the node in
+#question to make some calculations to discover how eficient is the node
+#and what happens if it is not there
 def eficienciaVertice(g, n):
     gr = Graph()
     gr.add_vertices(g.vcount()-1)
@@ -35,8 +44,10 @@ def eficienciaVertice(g, n):
     gr.delete_vertices(n)
     return calculosEficiencia(matrizMenorCaminho(gr), g)
 
-
-def eficienciaVerticeCom5(g, n):
+#this function makes exactly what the previous one but where the nodes do not
+#connect the value 0 is replaced by a value not possible. one more the number of
+#nodes
+def eficienciaVerticeComMax(g, n):
     gr = Graph()
     gr.add_vertices(g.vcount()-1)
     gr.add_edges(g.get_edgelist())
@@ -47,16 +58,21 @@ def eficienciaVerticeCom5(g, n):
         j=0
         while j<len(matriz[i]):
             if matriz[i][j]==0 and i!=j:
-                matriz[i][j]=5
+                matriz[i][j]=g.vcount()
             j+=1
         i+=1
     return calculosEficiencia(matriz, g)
 
+#this function make the vulnerability calculation with the node efficiency and
+#the global efficiency
 def vulnerabilidade(ef, efg):
     return (efg-ef)/efg
-    
 
-####### ler grafo do arquivo ########
+
+###### read graph from a file #######
+
+#now, to the program not to be static, this part of the code is to read from a
+#file the edgelist. With this list we can generate a Graph.
 
 def strtoint(x):
     lista = []
@@ -68,55 +84,66 @@ def strtoint(x):
 arquivo = open('karate.txt','r')
 
 valores = []
+teste=[]
 
 for linha in arquivo:
     x=linha.replace('\n', '').split(' ')
+    teste.append(int(x[0]))
+    teste.append(int(x[1]))
     valores.append((x[0], x[1]))
+
+valor = (max(teste))
 
 #####################################
 
+#All the results will be writen in a file.
+file = open("valores.txt", "w")
+
 g = Graph()
-g.add_vertices(len(valores)-1)
+g.add_vertices(valor)
+print(len(valores))
 g.add_edges(strtoint(valores))
 
 
-print(summary(g))
 
-print('\nNúmero de Vértices:')
-print(len(g.degree()))
+s=''
 
-print('\nNumero de arestas:')
-print(len(g.get_edgelist()))
+s+=(str(summary(g)))
 
-print('\nDiâmetro:')
-print(g.diameter())
+s+=('\nNumber of Nodes:'+str(len(g.degree())))
 
-print('\nLista de arestas:')
-print(g.get_edgelist())
+s+=('\nNumber of Edge:'+str(len(g.get_edgelist())))
 
-print('\nGraus: ')
-print(g.degree())
+s+=('\nDiameter:'+str(g.diameter()))
 
-print('\nMinimo Caminho Médio:')
-print(g.average_path_length())
+s+=('\nEdge List:'+str(g.get_edgelist()))
 
-print('\nBetweenness: ')
-print(g.betweenness())
+s+=('\nDegree: '+str(g.degree()))
 
-print('\nMatriz de adjacência:')
-print(g.get_adjacency())
+s+=('\nAverage path lenght:'+str(g.average_path_length()))
 
-print('\nEficiencia Global:')
-print(eficienciaGlobal(g))
+s+=('\nBetweenness: '+str(g.betweenness()))
+
+s+=('\nEdge Betweenness: '+str(g.edge_betweenness()))
+
+s+=('\nAdjacency Matrix:\n'+str(g.get_adjacency()))
+
+efg=eficienciaGlobal(g)
+s+=('\Global Eficiency:'+str(efg))
+
 
 i=0
 n=len(g.degree())
 while i<n:
-    print('\nVértice ' + str(i) +':')
-    print('Eficiencia: '+ str(eficienciaVertice(g, i)))
-    print('Vulnerabilidade: ' + str(vulnerabilidade(eficienciaVertice(g, i), eficienciaGlobal(g))))
-    print('Eficiencia com 5: '+ str(eficienciaVerticeCom5(g, i)))
-    print('Vulnerabilidade com 5: ' + str(vulnerabilidade(eficienciaVerticeCom5(g, i), eficienciaGlobal(g))))
+    s+=('\n\nNode ' + str(i) +':')
+    s+=('\nEficiencia: '+ str(eficienciaVertice(g, i)))
+    s+=('\nVulnerabilidade: ' + str(vulnerabilidade(eficienciaVertice(g, i), efg)))
+    s+=('\nEficiencia com 5: '+ str(eficienciaVerticeComMax(g, i)))
+    s+=('\nVulnerabilidade com 5: ' + str(vulnerabilidade(eficienciaVerticeComMax(g, i), efg)))
+    
     i+=1
 
+print s
 
+file.write(s)
+file.close()
